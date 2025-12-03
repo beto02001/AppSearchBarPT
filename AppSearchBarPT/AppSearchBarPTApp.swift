@@ -11,7 +11,7 @@ import SwiftUI
 struct AppSearchBarPTApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SearchView()
         }
     }
 }
