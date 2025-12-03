@@ -6,3 +6,8 @@
 //
 
 import Foundation
+
+// MARK: - RepositoryProtocol
+protocol ProductRepositoryProtocol {
+    func searchProducts(term: String) async throws -> [ProductModelToView]
+}

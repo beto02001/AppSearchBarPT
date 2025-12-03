@@ -9,18 +9,17 @@ import Foundation
 import Combine
 
 @MainActor
-class SearchViewModel: ObservableObject {
-    @Published var products = [ProductDemo]()
+final class SearchViewModel: ObservableObject {
 
-    func fetchProduct(category: String) {
-        print("primera carga")
-        self.products = ProductDemo.sample
-    }
-    
-    func loadMoreIfNeeded(currentItem: ProductDemo) {
-        print("Cargar más productos")
-        let newProducts = ProductDemo.getNewProducts()
-        self.products.append(contentsOf: newProducts)
+    @Published var products: [ProductModelToView] = []
+    private let repository = ProductRepository()
+
+    func search(_ term: String) async {
+        do {
+            let items = try await repository.searchProducts(term: term)
+            self.products = items
+        } catch {
+            print("Error buscando productos:", error)
+        }
     }
 }
-
