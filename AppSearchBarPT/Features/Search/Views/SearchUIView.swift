@@ -8,15 +8,8 @@
 import SwiftUI
 
 struct SearchView: View {
-
     @StateObject private var viewModel = SearchViewModel()
     @State private var searchText = ""
-
-    private let columns = [
-        GridItem(.flexible(), spacing: 15),
-        GridItem(.flexible(), spacing: 15)
-    ]
-
     private let prefetchOffset = 3
 
     var filteredProducts: [ProductDemo] {
@@ -31,39 +24,42 @@ struct SearchView: View {
 
     var body: some View {
         let items = filteredProducts
-
         NavigationView {
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 15) {
-                    ForEach(items) { product in
-                        ProductCardView(
-                            image: product.image,
-                            title: product.title,
-                            price: product.price
-                        )
-                        .onAppear {
-                            guard searchText.isEmpty else { return }
-                            if let index = items.firstIndex(where: { $0.id == product.id }) {
-                                let shouldPrefetch = index >= max(0, items.count - prefetchOffset)
-                                if shouldPrefetch {
-                                    Task {
-                                        await viewModel.loadMoreIfNeeded(currentItem: product)
-                                    }
+            List {
+                ForEach(items) { product in
+                    ProductCardView(
+                        imageURL: product.image,
+                        title: product.title,
+                        price: product.price,
+                        colorHexes: ["#FF0000", "00FF00", "0000FF"]
+                    )
+                    .onAppear {
+                        guard searchText.isEmpty else { return }
+                        if let index = items.firstIndex(where: { $0.id == product.id }) {
+                            let shouldPrefetch = index >= max(0, items.count - prefetchOffset)
+                            if shouldPrefetch {
+                                Task {
+                                    await viewModel.loadMoreIfNeeded(currentItem: product)
                                 }
                             }
                         }
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top, 15)
-                .padding(.bottom, 20)
+
+                /*if viewModel.isLoading {
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }
+                }*/
             }
+            .listStyle(PlainListStyle())
             .navigationTitle("Lista de Productos")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {}) {
                         Image(systemName: "bag")
-                            .foregroundColor(.black)
                     }
                 }
             }
@@ -76,6 +72,7 @@ struct SearchView: View {
         }
     }
 }
+
 
 #Preview {
     SearchView()

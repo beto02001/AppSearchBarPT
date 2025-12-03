@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 
+@MainActor
 class SearchViewModel: ObservableObject {
     @Published var products = [ProductDemo]()
 
