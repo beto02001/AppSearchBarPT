@@ -6,3 +6,20 @@
 //
 
 import Foundation
+import Combine
+
+class SearchViewModel: ObservableObject {
+    @Published var products = [ProductDemo]()
+
+    func fetchProduct(category: String) {
+        print("primera carga")
+        self.products = ProductDemo.sample
+    }
+    
+    func loadMoreIfNeeded(currentItem: ProductDemo) {
+        print("Cargar más productos")
+        let newProducts = ProductDemo.getNewProducts()
+        self.products.append(contentsOf: newProducts)
+    }
+}
+
