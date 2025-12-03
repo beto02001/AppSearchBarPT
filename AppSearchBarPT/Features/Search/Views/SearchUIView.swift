@@ -12,7 +12,7 @@ struct SearchView: View {
     @State private var searchText = ""
     private let prefetchOffset = 3
 
-    var filteredProducts: [ProductDemo] {
+    var filteredProducts: [ProductModelToView] {
         if searchText.isEmpty {
             return viewModel.products
         } else {
@@ -39,7 +39,7 @@ struct SearchView: View {
                             let shouldPrefetch = index >= max(0, items.count - prefetchOffset)
                             if shouldPrefetch {
                                 Task {
-                                    await viewModel.loadMoreIfNeeded(currentItem: product)
+                                    //await viewModel.loadMoreIfNeeded(currentItem: product)
                                 }
                             }
                         }
@@ -66,7 +66,7 @@ struct SearchView: View {
             .searchable(text: $searchText, prompt: "Buscar productos...")
             .onAppear {
                 Task {
-                    await viewModel.fetchProduct(category: "")
+                    await viewModel.search("tenis")
                 }
             }
         }

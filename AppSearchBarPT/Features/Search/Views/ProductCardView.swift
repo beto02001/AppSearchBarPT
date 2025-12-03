@@ -9,7 +9,6 @@ import Foundation
 import SwiftUI
 import System
 
-// MARK: - ProductCardView con colores dinámicos (hex)
 struct ProductCardView: View {
     let imageURL: String
     let title: String
