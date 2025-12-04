@@ -7,13 +7,13 @@
 
 import Foundation
 
-// MARK: - APIClientProtocol
 protocol APIClientProtocol {
-    func send<T: Decodable>(_ request: URLRequest) async throws -> T
+    func send<T: Decodable>(_ request: URLRequest?) async throws -> T
 }
 
 final class APIClient: APIClientProtocol {
-    func send<T: Decodable>(_ request: URLRequest) async throws -> T {
+    func send<T: Decodable>(_ request: URLRequest?) async throws -> T {
+        guard let request = request else { throw URLError(.badURL) }
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let http = response as? HTTPURLResponse,

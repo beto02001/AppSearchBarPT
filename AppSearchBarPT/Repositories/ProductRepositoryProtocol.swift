@@ -8,5 +8,5 @@
 import Foundation
 
 protocol ProductRepositoryProtocol {
-    func searchProducts(term: String) async throws -> [ProductModelToView]
+    func searchProducts(term: String, page: Int, pageSize: Int, sort: String?) async throws -> (items: [ProductModelToView], totalNumRecs: Int?)
 }

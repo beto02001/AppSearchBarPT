@@ -10,14 +10,11 @@ import SwiftUI
 import System
 
 struct ProductCardView: View {
-    let imageURL: String
-    let title: String
-    let price: String
-    let colorHexes: [String]
+    let fromModel: ProductModelToView
 
     var body: some View {
         HStack(spacing: 0) {
-            AsyncImage(url: URL(string: imageURL)) { phase in
+            AsyncImage(url: URL(string: fromModel.image)) { phase in
                 switch phase {
                 case .empty:
                     ProgressView()
@@ -38,23 +35,29 @@ struct ProductCardView: View {
             .background(Color.subtitle)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text(title)
+                Text(fromModel.title)
                     .font(.system(size: 15, weight: .regular))
                     .foregroundColor(.primary)
                     .lineLimit(2)
 
-                Text("costo lista")
-                    .font(.system(size: 14, weight: .thin))
-                    .foregroundColor(.secondary)
+                if fromModel.price != fromModel.promoPrice {
+                    Text(fromModel.price)
+                        .font(.system(size: 14, weight: .thin))
+                        .foregroundColor(.secondary)
 
-                Text(price)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.pinkPrimary)
+                    Text(fromModel.promoPrice)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.pinkPrimary)
+                } else {
+                    Text(fromModel.promoPrice)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.pinkPrimary)
+                }
 
-                if !colorHexes.isEmpty {
+                if !fromModel.colorHexes.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            ForEach(Array(colorHexes.enumerated()), id: \.0) { _, hex in
+                            ForEach(Array(fromModel.colorHexes.enumerated()), id: \.0) { _, hex in
                                 Circle()
                                     .fill(Color(hex: hex))
                                     .frame(width: 14, height: 14)
@@ -82,10 +85,5 @@ struct ProductCardView: View {
 
 
 #Preview {
-    ProductCardView(
-        imageURL: "https://ss632.liverpool.com.mx/sm/1186092704.jpg",
-        title: "Cafetera de Goteo Programable",
-        price: "$899.00",
-        colorHexes: ["#FF0000", "00FF00", "0000FF"]
-    )
+    ProductCardView(fromModel: .init(id: "", title: "", image: "", price: "", promoPrice: "", colorHexes: []))
 }

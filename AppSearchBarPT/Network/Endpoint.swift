@@ -10,20 +10,28 @@ import Foundation
 struct Endpoint {
     let urlRequest: URLRequest
 
-    static func search(term: String) -> Endpoint {
+    static func search(term: String, page: Int = 1, pageSize: Int = 20, sort: String? = nil) -> Endpoint? {
         var components = URLComponents(string:
             "https://shoppapp.liverpool.com.mx/appclienteservices/services/v8/plp/sf"
-        )!
+        )
 
-        components.queryItems = [
-            URLQueryItem(name: "search-string", value: term),
-            URLQueryItem(name: "page-number", value: "1"),
-            URLQueryItem(name: "number-of-items-per-page", value: "20"),
+        var querys = [
+            URLQueryItem(name: "page-number", value: "\(page)"),
+            URLQueryItem(name: "number-of-items-per-page", value: "\(pageSize)"),
             URLQueryItem(name: "force-plp", value: "false"),
             URLQueryItem(name: "cleanProductName", value: "false")
         ]
+        
+        if !term.isEmpty {
+            querys.append(URLQueryItem(name: "search-string", value: term))
+        }
+        if let sort = sort {
+            querys.append(URLQueryItem(name: "sort-option", value: sort))
+        }
+        
+        components?.queryItems = querys
 
-        let url = components.url!
+        guard let url = components?.url else { return  nil }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
 
