@@ -1,8 +1,8 @@
 # Aplicación Prueba Técnica
 
-## MVP
-- Forma visual lista
-- Consumo de API hardcodeado
-- Paginación
+## Descripción de la aplicación
+- Forma visual de los productos
+- Consumo de API paginado
+- Base para filtro
 
-## Version de iOS mínimo: 15.6
+### Version de iOS mínimo: 15.6
