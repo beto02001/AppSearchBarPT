@@ -10,6 +10,8 @@ import SwiftUI
 struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
     @State private var searchText: String = ""
+    @State private var showingFilterSheet = false
+    @State private var selectedSort: SortOption? = nil
     private let prefetchOffset = 3
 
     var body: some View {
@@ -20,7 +22,7 @@ struct SearchView: View {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 44))
                             .foregroundColor(.secondary)
-                        Text("Priducto no encontrado")
+                        Text("Producto no encontrado")
                             .font(.headline)
                         Text("No se encontró \(searchText).")
                             .font(.subheadline)
@@ -35,7 +37,11 @@ struct SearchView: View {
                             ProductCardView(fromModel: product)
                                 .onAppear {
                                     guard product.id == lastProductID else { return }
-                                    viewModel.loadMoreIfNeeded(currentItem: product, prefetchOffset: prefetchOffset)
+                                    viewModel.loadMoreIfNeeded(
+                                        currentItem: product,
+                                        prefetchOffset: prefetchOffset,
+                                        sort: selectedSort?.rawValue
+                                    )
                                 }
                                 .padding(.vertical, 8)
                         }
@@ -56,27 +62,36 @@ struct SearchView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        
+                        showingFilterSheet = true
                     }) {
-                        Image(systemName: "settings")
+                        Image(systemName: "line.3.horizontal.decrease.circle")
                     }
                 }
             }
             .searchable(text: $searchText, prompt: "Buscar productos...")
             .onSubmit(of: .search) {
-                viewModel.fetchInitial(term: searchText)
+                viewModel.fetchInitial(term: searchText, sort: selectedSort?.rawValue)
             }
             .onChange(of: searchText) { newValue in
                 if newValue.isEmpty {
-                    viewModel.fetchInitial(term: "")
+                    viewModel.fetchInitial(term: "", sort: selectedSort?.rawValue)
                 }
             }
             .onAppear {
-                viewModel.fetchInitial(term: "")
+                viewModel.fetchInitial(term: "", sort: selectedSort?.rawValue)
+            }
+            .sheet(isPresented: $showingFilterSheet) {
+                FilterSortView(initialSort: selectedSort) { newSort in
+                    selectedSort = newSort
+                    Task {
+                        viewModel.fetchInitial(term: searchText, sort: selectedSort?.rawValue)
+                    }
+                }
             }
         }
     }
 }
+
 
 #Preview {
     SearchView()
