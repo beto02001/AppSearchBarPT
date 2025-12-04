@@ -12,7 +12,6 @@ struct SearchView: View {
     @State private var searchText: String = ""
     @State private var showingFilterSheet = false
     @State private var selectedSort: SortOption? = nil
-    private let prefetchOffset = 3
 
     var body: some View {
         NavigationView {
@@ -39,7 +38,6 @@ struct SearchView: View {
                                     guard product.id == lastProductID else { return }
                                     viewModel.loadMoreIfNeeded(
                                         currentItem: product,
-                                        prefetchOffset: prefetchOffset,
                                         sort: selectedSort?.rawValue
                                     )
                                 }
@@ -91,7 +89,6 @@ struct SearchView: View {
         }
     }
 }
-
 
 #Preview {
     SearchView()

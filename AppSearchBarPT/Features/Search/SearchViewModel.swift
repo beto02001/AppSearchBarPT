@@ -21,8 +21,8 @@ final class SearchViewModel: ObservableObject {
     private var currentPage: Int = 1
     private var pageSize: Int
     private var currentTerm: String = ""
-    private var totalNumRecs: Int? = nil
-
+    private var totalNumberOfItems: Int? = nil
+    private let prefetchIndexItem: Int = 4
     private var currentTask: Task<Void, Never>?
 
     init(repository: ProductRepositoryProtocol = ProductRepository(), pageSize: Int = 20) {
@@ -32,7 +32,6 @@ final class SearchViewModel: ObservableObject {
 
     func fetchInitial(term: String, sort: String? = nil) {
         currentTask?.cancel()
-
         currentTask = Task { [weak self] in
             guard let self = self else { return }
             await self.setUpForNewSearch(term: term)
@@ -40,12 +39,12 @@ final class SearchViewModel: ObservableObject {
         }
     }
 
-    func loadMoreIfNeeded(currentItem: ProductModelToView, prefetchOffset: Int = 2, sort: String? = nil) {
+    func loadMoreIfNeeded(currentItem: ProductModelToView, sort: String? = nil) {
         Task {
             guard !isLoading && hasMore else { return }
             guard let index = products.firstIndex(where: { $0.id == currentItem.id }) else { return }
 
-            let triggerIndex = max(0, products.count - 1 - prefetchOffset)
+            let triggerIndex = max(0, products.count - 1 - prefetchIndexItem)
             if index >= triggerIndex {
                 await loadPage(sort: sort)
             }
@@ -55,7 +54,7 @@ final class SearchViewModel: ObservableObject {
     private func setUpForNewSearch(term: String) async {
         currentTerm = term
         currentPage = 1
-        totalNumRecs = nil
+        totalNumberOfItems = nil
         hasMore = true
         products = []
     }
@@ -66,31 +65,32 @@ final class SearchViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let (items, total) = try await repository.searchProducts(term: currentTerm, page: currentPage,
+            let (items, totalItems) = try await repository.searchProducts(term: currentTerm, page: currentPage,
                                                                      pageSize: pageSize, sort: sort)
-
-            if currentPage == 1 {
-                products = items
-            } else {
-                products.append(contentsOf: items)
-            }
-            print("Conteo de productos: \(products.count)")
-            totalNumRecs = total
-
-            if let totalNum = totalNumRecs {
-                hasMore = products.count < totalNum
-                if hasMore { currentPage += 1 }
-            } else {
-                if items.count < pageSize {
-                    hasMore = false
-                } else {
-                    hasMore = true
-                    currentPage += 1
-                }
-            }
+            saveData(from: items)
+            updatePagination(number: totalItems, quantityItems: items.count)
         } catch {
             if Task.isCancelled { return }
             print("Error loadPage:", error)
         }
+    }
+    
+    private func saveData(from items: [ProductModelToView]) {
+        if currentPage == 1 {
+            products = items
+        } else {
+            products.append(contentsOf: items)
+        }
+    }
+    
+    private func updatePagination(number total: Int?, quantityItems: Int) {
+        totalNumberOfItems = total
+        guard let totalNum = total else {
+            hasMore = quantityItems >= pageSize
+            if hasMore { currentPage += 1 }
+            return
+        }
+        hasMore = products.count < totalNum
+        if hasMore { currentPage += 1 }
     }
 }

@@ -22,7 +22,7 @@ struct ProductCardView: View {
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                case .failure(let error):
+                case .failure:
                     Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(.red)
                 @unknown default:

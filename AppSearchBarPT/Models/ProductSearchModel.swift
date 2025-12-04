@@ -36,23 +36,3 @@ struct ProductColorVariant: Decodable {
     let colorName: String
     let colorHex: String?
 }
-
-extension ProductSearchModel {
-    func toDomain() -> ProductModelToView {
-        ProductModelToView(id: productId,
-                           title: productDisplayName,
-                           image: smImage ?? "",
-                           price: "$\(listPrice)",
-                           promoPrice: "$\(promoPrice ?? 0.0)",
-                           colorHexes: variantsColor?.compactMap { $0.colorHex } ?? [])
-    }
-}
-
-struct ProductModelToView: Identifiable {
-    let id: String
-    let title: String
-    let image: String
-    let price: String
-    let promoPrice: String
-    let colorHexes: [String]
-}
