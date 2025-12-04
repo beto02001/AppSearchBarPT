@@ -9,70 +9,74 @@ import SwiftUI
 
 struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
-    @State private var searchText = ""
+    @State private var searchText: String = ""
     private let prefetchOffset = 3
 
-    var filteredProducts: [ProductModelToView] {
-        if searchText.isEmpty {
-            return viewModel.products
-        } else {
-            return viewModel.products.filter {
-                $0.title.localizedCaseInsensitiveContains(searchText)
-            }
-        }
-    }
-
     var body: some View {
-        let items = filteredProducts
         NavigationView {
-            List {
-                ForEach(items) { product in
-                    ProductCardView(
-                        imageURL: product.image,
-                        title: product.title,
-                        price: product.price,
-                        colorHexes: ["#FF0000", "00FF00", "0000FF"]
-                    )
-                    .onAppear {
-                        guard searchText.isEmpty else { return }
-                        if let index = items.firstIndex(where: { $0.id == product.id }) {
-                            let shouldPrefetch = index >= max(0, items.count - prefetchOffset)
-                            if shouldPrefetch {
-                                Task {
-                                    //await viewModel.loadMoreIfNeeded(currentItem: product)
+            Group {
+                if viewModel.products.isEmpty && !viewModel.isLoading {
+                    VStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 44))
+                            .foregroundColor(.secondary)
+                        Text("Priducto no encontrado")
+                            .font(.headline)
+                        Text("No se encontró \(searchText).")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
+                } else {
+                    let lastProductID = viewModel.products.last?.id ?? ""
+                    List {
+                        ForEach(viewModel.products) { product in
+                            ProductCardView(fromModel: product)
+                                .onAppear {
+                                    guard product.id == lastProductID else { return }
+                                    viewModel.loadMoreIfNeeded(currentItem: product, prefetchOffset: prefetchOffset)
                                 }
+                                .padding(.vertical, 8)
+                        }
+
+                        if viewModel.isLoading {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                Spacer()
                             }
+                            .listRowInsets(EdgeInsets())
                         }
                     }
+                    .listStyle(PlainListStyle())
                 }
-
-                /*if viewModel.isLoading {
-                    HStack {
-                        Spacer()
-                        ProgressView()
-                        Spacer()
-                    }
-                }*/
             }
-            .listStyle(PlainListStyle())
             .navigationTitle("Lista de Productos")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {}) {
-                        Image(systemName: "bag")
+                    Button(action: {
+                        
+                    }) {
+                        Image(systemName: "settings")
                     }
                 }
             }
             .searchable(text: $searchText, prompt: "Buscar productos...")
-            .onAppear {
-                Task {
-                    await viewModel.search("tenis")
+            .onSubmit(of: .search) {
+                viewModel.fetchInitial(term: searchText)
+            }
+            .onChange(of: searchText) { newValue in
+                if newValue.isEmpty {
+                    viewModel.fetchInitial(term: "")
                 }
+            }
+            .onAppear {
+                viewModel.fetchInitial(term: "")
             }
         }
     }
 }
-
 
 #Preview {
     SearchView()
